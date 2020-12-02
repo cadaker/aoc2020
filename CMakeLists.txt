@@ -11,7 +11,11 @@ add_executable(day01
         aoc2020/day01.cpp
         )
 
+add_executable(day02
+        aoc2020/day02.cpp
+        )
+
 add_executable(tests
-        tests/test01.cpp)
+        tests/test02.cpp)
 target_link_libraries(tests
         PRIVATE gtest gtest_main Threads::Threads)
