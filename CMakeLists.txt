@@ -15,6 +15,10 @@ add_executable(day02
         aoc2020/day02.cpp
         )
 
+add_executable(day03
+        aoc2020/day03.cpp
+        )
+
 add_executable(tests
         tests/test02.cpp)
 target_link_libraries(tests
