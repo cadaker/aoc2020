@@ -1,8 +1,9 @@
+#include "range_helpers.hpp"
+
 #include <iostream>
 #include <string>
 #include <vector>
 #include <ranges>
-#include <numeric>
 
 struct toboggan_map {
     std::vector<std::string> rows;
@@ -45,7 +46,8 @@ int main() {
     std::cout << count_trees(tmap, 1, 3) << std::endl;
 
     std::vector<std::pair<unsigned, unsigned>> paths = {{1, 1}, {3, 1}, {5, 1}, {7, 1}, {1, 2}};
-    auto tree_counts = paths | std::views::transform([&](auto& p) { return count_trees(tmap, p.second, p.first); });
 
-    std::cout << std::accumulate(tree_counts.begin(), tree_counts.end(), 1, std::multiplies{}) << std::endl;
+    std::cout << (paths
+                  | std::views::transform([&](auto& p) { return count_trees(tmap, p.second, p.first); })
+                  | accumulate(1, std::multiplies{})) << std::endl;
 }

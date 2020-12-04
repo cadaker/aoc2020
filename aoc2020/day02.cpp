@@ -10,7 +10,7 @@ bool check_policy1(policy const& p, std::string const& password) {
 bool check_policy2(policy const& p, std::string const& password) {
     size_t const ix0 = p.min - 1;
     size_t const ix1 = p.max - 1;
-    return (password.at(ix0) == p.ch) ^ (password.at(ix1) == p.ch) == 1;
+    return (password.at(ix0) == p.ch) ^ (password.at(ix1) == p.ch);
 }
 
 int main() {
