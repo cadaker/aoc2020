@@ -1,3 +1,4 @@
+#include "input_views.hpp"
 #include <iostream>
 #include <string>
 #include <vector>
@@ -42,9 +43,8 @@ seat parse_seat(std::string const& line) {
 int main() {
 
     std::vector<seat> seats;
-    std::string line;
-    while (std::getline(std::cin, line)) {
-        seats.push_back(parse_seat(line));
+    for (auto seat : input_lines(std::cin) | std::views::transform(parse_seat)) {
+        seats.push_back(std::move(seat));
     }
     if (seats.empty()) {
         return 1;
