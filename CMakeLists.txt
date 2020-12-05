@@ -28,6 +28,8 @@ add_executable(day05
         )
 
 add_executable(tests
-        tests/test02.cpp)
+        tests/test02.cpp
+        tests/input_views.cpp
+        )
 target_link_libraries(tests
         PRIVATE gtest gtest_main Threads::Threads)
