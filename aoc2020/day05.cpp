@@ -3,6 +3,7 @@
 #include <vector>
 #include <ranges>
 #include <algorithm>
+#include <unordered_set>
 
 struct seat {
     int row;
@@ -51,4 +52,15 @@ int main() {
 
     auto seat_ids = seats | std::views::transform([](seat const& s) { return s.row * 8 + s.column; });
     std::cout << *std::max_element(seat_ids.begin(), seat_ids.end()) << std::endl;
+
+    int const max_id = *std::max_element(seat_ids.begin(), seat_ids.end());
+    int const min_id = *std::min_element(seat_ids.begin(), seat_ids.end());
+    std::unordered_set const seat_ids_set(seat_ids.begin(), seat_ids.end());
+
+    for (int id = min_id; id <= max_id; ++id) {
+        if (seat_ids_set.count(id) == 0) {
+            std::cout << id << std::endl;
+            break;
+        }
+    }
 }
