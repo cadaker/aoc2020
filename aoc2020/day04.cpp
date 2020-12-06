@@ -86,7 +86,7 @@ bool very_valid_passport(passport_info const& passport) {
             && valid_pid(get("pid"));
 }
 
-int main() {
+void run() {
     auto passports = parse_input(std::cin);
 
     auto validations = passports | std::views::transform(valid_passport);

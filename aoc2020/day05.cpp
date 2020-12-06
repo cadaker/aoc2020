@@ -40,14 +40,14 @@ seat parse_seat(std::string const& line) {
     return {row_begin, col_begin};
 }
 
-int main() {
+void run() {
 
     std::vector<seat> seats;
     for (auto seat : input_lines(std::cin) | std::views::transform(parse_seat)) {
         seats.push_back(std::move(seat));
     }
     if (seats.empty()) {
-        return 1;
+        return;
     }
 
     auto seat_ids = seats | std::views::transform([](seat const& s) { return s.row * 8 + s.column; });

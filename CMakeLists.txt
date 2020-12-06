@@ -7,29 +7,22 @@ include_directories(aoc2020)
 
 find_package(Threads)
 
-add_executable(day01
-        aoc2020/day01.cpp
-        )
+function(day name)
+    add_library(${name}_library STATIC aoc2020/${name}.cpp)
+    add_executable(${name} aoc2020/runner.cpp)
+    target_link_libraries(${name} PRIVATE ${name}_library)
+endfunction()
 
-add_executable(day02
-        aoc2020/day02.cpp
-        )
-
-add_executable(day03
-        aoc2020/day03.cpp
-        )
-
-add_executable(day04
-        aoc2020/day04.cpp
-        )
-
-add_executable(day05
-        aoc2020/day05.cpp
-        )
+day(day01)
+day(day02)
+day(day03)
+day(day04)
+day(day05)
 
 add_executable(tests
         tests/test02.cpp
         tests/input_views.cpp
         )
 target_link_libraries(tests
-        PRIVATE gtest gtest_main Threads::Threads)
+        PRIVATE gtest gtest_main Threads::Threads
+        )

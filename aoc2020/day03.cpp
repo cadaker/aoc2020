@@ -36,11 +36,11 @@ unsigned count_trees(toboggan_map const& tmap, unsigned row_step, unsigned colum
     return tree_count;
 }
 
-int main() {
+void run() {
     toboggan_map const tmap = parse_map(std::cin);
     if (tmap.rows.empty()) {
         std::cerr << "Bad map" << std::endl;
-        return 1;
+        return;
     }
 
     std::cout << count_trees(tmap, 1, 3) << std::endl;

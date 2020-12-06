@@ -13,7 +13,7 @@ bool check_policy2(policy const& p, std::string const& password) {
     return (password.at(ix0) == p.ch) ^ (password.at(ix1) == p.ch);
 }
 
-int main() {
+void run() {
     std::string line;
     unsigned successful1 = 0;
     unsigned successful2 = 0;

@@ -27,13 +27,13 @@ std::tuple<long, long, long> find_triplet_summing_to(std::vector<long> const& in
     return {-1, -1, -1};
 }
 
-int main() {
+void run() {
     std::vector<long> input;
     std::copy(std::istream_iterator<long>(std::cin), std::istream_iterator<long>(), std::back_inserter(input));
 
     if (input.empty()) {
         std::cout << "No input\n";
-        return 1;
+        return;
     }
 
     auto part1 = find_pair_summing_to(input, 2020);
