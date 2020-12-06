@@ -13,6 +13,25 @@ bool check_policy2(policy const& p, std::string const& password) {
     return (password.at(ix0) == p.ch) ^ (password.at(ix1) == p.ch);
 }
 
+std::pair<policy, std::string> parse_policy(std::string const& line) {
+    std::istringstream iss(line);
+    policy policy;
+    if (iss >> policy.min &&
+        iss.get() == '-' &&
+        iss >> policy.max &&
+        iss.get() == ' ' &&
+        std::isalnum(policy.ch = iss.get()) &&
+        iss.get() == ':' &&
+        iss.get() == ' ')
+    {
+        std::string password;
+        std::getline(iss, password);
+        return {policy, password};
+    } else {
+        return {};
+    }
+}
+
 void run() {
     std::string line;
     unsigned successful1 = 0;

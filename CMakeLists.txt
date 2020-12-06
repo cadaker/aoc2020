@@ -20,6 +20,7 @@ day(day05)
 add_executable(tests
         tests/test02.cpp
         tests/input_views.cpp
+        aoc2020/day02.cpp
         )
 target_link_libraries(tests
         PRIVATE gtest gtest_main Threads::Threads
