@@ -8,9 +8,7 @@ include_directories(aoc2020)
 find_package(Threads)
 
 function(day name)
-    add_library(${name}_library STATIC aoc2020/${name}.cpp)
-    add_executable(${name} aoc2020/runner.cpp)
-    target_link_libraries(${name} PRIVATE ${name}_library)
+    add_executable(${name} aoc2020/runner.cpp aoc2020/${name}.cpp)
 endfunction()
 
 day(day01)
