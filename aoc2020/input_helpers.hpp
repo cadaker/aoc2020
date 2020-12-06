@@ -5,6 +5,7 @@
 #include <iterator>
 #include <ranges>
 #include <memory>
+#include <vector>
 
 class input_line_iterator: public std::iterator<
         std::input_iterator_tag,
@@ -94,3 +95,20 @@ static_assert(std::ranges::input_range<input_lines>);
 
 template<>
 constexpr bool std::ranges::enable_borrowed_range<input_lines> = true;
+
+////////////////////////////////////////////////////////////////
+
+inline std::vector<std::vector<std::string>> slurp_line_groups(std::istream& is) {
+    std::vector<std::string> current_group;
+    std::vector<std::vector<std::string>> result;
+    for (std::string line : input_lines(is)) {
+        if (!line.empty()) {
+            current_group.push_back(std::move(line));
+        } else {
+            result.push_back(std::move(current_group));
+            current_group = {};
+        }
+    }
+    result.push_back(std::move(current_group));
+    return result;
+}
