@@ -6,8 +6,9 @@
 #include <ranges>
 
 using bag_contained_by_graph = std::unordered_multimap<std::string, std::string>;
+using bag_contains_graph = std::unordered_multimap<std::string, std::pair<int, std::string>>;
 
-void add_to_graph(bag_contained_by_graph& contained_by, std::string const& line) {
+void add_to_graphs(bag_contained_by_graph& contained_by, bag_contains_graph& contains, std::string const& line) {
     static std::regex const prefix_regex(R"(^(.*?) bags contain)");
     static std::regex const contents_regex(R"((\d+) (.*?) bags?)");
 
@@ -24,6 +25,8 @@ void add_to_graph(bag_contained_by_graph& contained_by, std::string const& line)
         auto const& match = *it;
         if (match.size() > 2) {
             contained_by.emplace(match[2], container);
+            int const count = std::atoi(match[1].str().c_str());
+            contains.emplace(container, std::pair(count, match[2]));
         }
     }
 }
@@ -44,11 +47,29 @@ size_t nr_contained_by(bag_contained_by_graph const& contained_by, std::string c
     return visited.size() - 1;
 }
 
+size_t contains_dfs(bag_contains_graph const& contains, std::string const& node) {
+    size_t total_contents = 1;
+    auto [begin, end] = contains.equal_range(node);
+    for (auto const& [_, contents] : std::ranges::subrange(begin, end)) {
+        int const count = contents.first;
+        std::string const& type = contents.second;
+        total_contents += count * contains_dfs(contains, type);
+    }
+    return total_contents;
+}
+
+size_t nr_contains(bag_contains_graph const& contains, std::string const& start) {
+    return contains_dfs(contains, start) - 1;
+}
+
 void run() {
-    bag_contained_by_graph bags;
+    bag_contained_by_graph contained_by;
+    bag_contains_graph contains;
     for (std::string const& line : input_lines(std::cin)) {
-        add_to_graph(bags, line);
+        add_to_graphs(contained_by, contains, line);
     }
 
-    std::cout << nr_contained_by(bags, "shiny gold") << std::endl;
+    std::cout << nr_contained_by(contained_by, "shiny gold") << std::endl;
+
+    std::cout << nr_contains(contains, "shiny gold") << std::endl;
 }
