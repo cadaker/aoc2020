@@ -17,6 +17,7 @@ day(day03)
 day(day04)
 day(day05)
 day(day06)
+day(day07)
 
 add_executable(tests
         tests/test02.cpp
