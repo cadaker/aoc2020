@@ -20,9 +20,7 @@ void add_to_graphs(bag_contained_by_graph& contained_by, bag_contains_graph& con
         return;
     }
 
-    auto end = std::sregex_iterator{};
-    for (auto it = std::sregex_iterator(line.begin(), line.end(), contents_regex); it != end; ++it) {
-        auto const& match = *it;
+    for (auto const& match : std::ranges::subrange(std::sregex_iterator(line.begin(), line.end(), contents_regex), std::sregex_iterator{})) {
         if (match.size() > 2) {
             contained_by.emplace(match[2], container);
             int const count = std::atoi(match[1].str().c_str());
