@@ -1,4 +1,5 @@
 #include "input_helpers.hpp"
+#include "range_helpers.hpp"
 #include <regex>
 #include <string>
 #include <unordered_map>
@@ -31,8 +32,7 @@ void add_to_graphs(bag_contained_by_graph& contained_by, bag_contains_graph& con
 
 void contained_by_dfs(bag_contained_by_graph const& contained_by, std::string const& node, std::unordered_set<std::string>& visited) {
     visited.insert(node);
-    auto [begin, end] = contained_by.equal_range(node);
-    for (auto const& [_, container] : std::ranges::subrange(begin, end)) {
+    for (auto const& [_, container] : pairseq(contained_by.equal_range(node))) {
         if (visited.count(container) == 0) {
             contained_by_dfs(contained_by, container, visited);
         }
@@ -47,8 +47,7 @@ size_t nr_contained_by(bag_contained_by_graph const& contained_by, std::string c
 
 size_t contains_dfs(bag_contains_graph const& contains, std::string const& node) {
     size_t total_contents = 1;
-    auto [begin, end] = contains.equal_range(node);
-    for (auto const& [_, contents] : std::ranges::subrange(begin, end)) {
+    for (auto const& [_, contents] : pairseq(contains.equal_range(node))) {
         int const count = contents.first;
         std::string const& type = contents.second;
         total_contents += count * contains_dfs(contains, type);
