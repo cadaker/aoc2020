@@ -1,5 +1,6 @@
 #include "intcode.hpp"
 #include "input_helpers.hpp"
+#include "range_helpers.hpp"
 
 #include <iostream>
 #include <unordered_set>
@@ -74,8 +75,7 @@ long trace_backwards(std::vector<intcode::instruction> const& program) {
             trace_queue.push_back({trace.ip-1, trace.ip-1});
         }
 
-        auto [jmpbegin, jmpend] = jump_from_jmp.equal_range(trace.ip);
-        for (auto const& p : std::ranges::subrange(jmpbegin, jmpend)) {
+        for (auto const& p : pairseq(jump_from_jmp.equal_range(trace.ip))) {
             long const ip = p.second;
             // By jumping from somewhere
             if (ip != trace.patched_ip) {
@@ -83,8 +83,7 @@ long trace_backwards(std::vector<intcode::instruction> const& program) {
             }
         }
 
-        auto [nopbegin, nopend] = jump_from_jmp.equal_range(trace.ip);
-        for (auto const& p : std::ranges::subrange(nopbegin, nopend)) {
+        for (auto const& p : pairseq(jump_from_jmp.equal_range(trace.ip))) {
             long const ip = p.second;
             // By jumping from a changed nop
             if (ip == trace.patched_ip) {

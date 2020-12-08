@@ -26,3 +26,35 @@ requires requires(Range&& range, accumulate<T, Op>&& fn) { fn(range); }
 auto operator|(Range&& range, accumulate<T, Op>&& fn) {
     return fn(range);
 }
+
+////////////////////////////////////////////////////////////////
+
+template<std::input_or_output_iterator Iter, std::sentinel_for<Iter> Sent>
+struct pairseq {
+    pairseq(std::pair<Iter, Sent> const& p)
+            : iterator(p.first)
+            , sentinel(p.second)
+    {}
+    Iter iterator;
+    Sent sentinel;
+};
+
+template<class Iter, class Sent>
+Iter begin(pairseq<Iter, Sent>& p) {
+    return p.iterator;
+}
+
+template<class Iter, class Sent>
+Iter begin(pairseq<Iter, Sent> const& p) {
+    return p.iterator;
+}
+
+template<class Iter, class Sent>
+Sent end(pairseq<Iter, Sent>& p) {
+    return p.sentinel;
+}
+
+template<class Iter, class Sent>
+Sent end(pairseq<Iter, Sent> const& p) {
+    return p.sentinel;
+}
