@@ -24,6 +24,20 @@ bool push(xmas& xmas, int number) {
     return ret;
 }
 
+int find_invalid(std::vector<int> const& numbers, int preamble_length) {
+    xmas xmas;
+    size_t i{};
+    for (i = 0; i < preamble_length && i < numbers.size(); ++i) {
+        xmas.push_back(numbers[i]);
+    }
+    for (; i < numbers.size(); ++i) {
+        if (!push(xmas, numbers[i])) {
+            return numbers[i];
+        }
+    }
+    return -1;
+}
+
 void run() {
     std::vector<int> numbers;
     std::transform(
@@ -33,16 +47,7 @@ void run() {
             [](std::string const& line) {
                 return atoi(line.c_str());
             });
-    size_t const N = 25;
-    xmas xmas;
-    size_t i{};
-    for (i = 0; i < N && i < numbers.size(); ++i) {
-        xmas.push_back(numbers[i]);
-    }
-    for (; i < numbers.size(); ++i) {
-        if (!push(xmas, numbers[i])) {
-            std::cout << numbers[i] << std::endl;
-            break;
-        }
-    }
+    size_t const preamble_length = 25;
+    int const invalid = find_invalid(numbers, preamble_length);
+    std::cout << invalid << std::endl;
 }
