@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <deque>
 #include <numeric>
+#include <unordered_set>
 
 std::vector<int> read_adapters(std::istream& is) {
     std::vector<int> adapters;
@@ -42,25 +43,25 @@ std::tuple<int, int, int> adapter_diffs(std::vector<int> const& adapters) {
     return {diff1, diff2, diff3};
 }
 
-size_t count_chains_between(std::vector<int> const& adaptors, int start, int target) {
-    auto adaptors_begin = std::lower_bound(adaptors.begin(), adaptors.end(), start + 1);
-    auto adaptors_end = std::lower_bound(adaptors.begin(), adaptors.end(), target);
+size_t count_chains(std::vector<int> const& adapters) {
+    int const laptop_jolts = (adapters.empty() ? 0 : *std::max_element(adapters.begin(), adapters.end())) + 3;
 
-    size_t count = 0;
-    std::deque<int> queue{start};
-    while (!queue.empty()) {
-        int const jolts = queue.front();
-        queue.pop_front();
-        if (jolts + 3 >= target) {
-            count++;
-        }
-        for (int adaptor : pairseq(adaptors_begin, adaptors_end)) {
-            if (jolts + 1 <= adaptor && jolts + 3 >= adaptor) {
-                queue.push_back(adaptor);
-            }
+    std::unordered_set<int> extended_jolts(adapters.begin(), adapters.end());
+    extended_jolts.insert(0);
+    extended_jolts.insert(laptop_jolts);
+
+    std::vector<size_t> chains_until(laptop_jolts + 1, 0);
+    chains_until[0] = 1;
+
+    for (int jolts = 1; jolts <= laptop_jolts; ++jolts) {
+        if (extended_jolts.count(jolts) > 0) {
+            chains_until[jolts] =
+                    chains_until[jolts - 1] +
+                    (jolts >= 2 ? chains_until[jolts - 2] : 0) +
+                    (jolts >= 3 ? chains_until[jolts - 3] : 0);
         }
     }
-    return count;
+    return chains_until.back();
 }
 
 void run() {
@@ -70,22 +71,5 @@ void run() {
 
     std::cout << diff1 * (diff3 + 1) << std::endl;
 
-    auto sorted_adapters = adapters;
-    std::sort(sorted_adapters.begin(), sorted_adapters.end());
-
-    int const laptop_jolts = sorted_adapters.empty() ? 0 : (sorted_adapters.back() + 3);
-
-    std::vector<size_t> chain_snippet_counts;
-
-    int low_jolts = 0;
-    for (size_t i = 1; i + 1 < sorted_adapters.size(); ++i) {
-        if (sorted_adapters[i+1] - sorted_adapters[i-1] > 3) {
-            chain_snippet_counts.push_back(count_chains_between(sorted_adapters, low_jolts, sorted_adapters[i]));
-            low_jolts = sorted_adapters[i];
-        }
-    }
-    chain_snippet_counts.push_back(count_chains_between(sorted_adapters, low_jolts, laptop_jolts));
-
-    std::cout << std::accumulate(chain_snippet_counts.begin(), chain_snippet_counts.end(), 1UL, std::multiplies<>{}) << std::endl;
-
+    std::cout << count_chains(adapters) << std::endl;
 }
