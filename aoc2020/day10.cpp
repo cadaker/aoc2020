@@ -1,5 +1,6 @@
 #include "input_helpers.hpp"
 #include <vector>
+#include <tuple>
 
 std::vector<int> read_adapters(std::istream& is) {
     std::vector<int> adapters;
@@ -13,8 +14,7 @@ std::vector<int> read_adapters(std::istream& is) {
     return adapters;
 }
 
-void run() {
-    std::vector<int> const adapters = read_adapters(std::cin);
+std::tuple<int, int, int> adapter_diffs(std::vector<int> const& adapters) {
     auto sorted_adapters = adapters;
     std::sort(sorted_adapters.begin(), sorted_adapters.end());
 
@@ -31,9 +31,17 @@ void run() {
             diff3++;
         } else {
             std::cout << "Bad adapter! in: " << input_jolts << ", adapter: " << adapter << std::endl;
+            return {-1, -1, -1};
         }
         input_jolts = adapter;
     }
+    return {diff1, diff2, diff3};
+}
+
+void run() {
+    std::vector<int> const adapters = read_adapters(std::cin);
+
+    auto [diff1, diff2, diff3] = adapter_diffs(adapters);
 
     std::cout << diff1 * (diff3 + 1) << std::endl;
 }
