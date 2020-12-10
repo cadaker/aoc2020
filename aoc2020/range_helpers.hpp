@@ -31,6 +31,11 @@ auto operator|(Range&& range, accumulate<T, Op>&& fn) {
 
 template<std::input_or_output_iterator Iter, std::sentinel_for<Iter> Sent>
 struct pairseq {
+    pairseq(Iter iter, Sent sent)
+            : iterator(iter)
+            , sentinel(sent)
+    {}
+
     pairseq(std::pair<Iter, Sent> const& p)
             : iterator(p.first)
             , sentinel(p.second)
