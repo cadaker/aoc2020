@@ -38,6 +38,17 @@ int find_invalid(std::vector<int> const& numbers, int preamble_length) {
     return -1;
 }
 
+std::pair<size_t, size_t> find_pairs_summing_to(std::vector<long> const& partial_sums, int target) {
+    for (size_t i = 0; i < partial_sums.size(); ++i) {
+        for (size_t j = i+2; j < partial_sums.size(); ++j) {
+            if (partial_sums[j] - partial_sums[i] == target) {
+                return {i, j};
+            }
+        }
+    }
+    return {-1, -1};
+}
+
 void run() {
     std::vector<int> numbers;
     std::transform(
@@ -50,4 +61,17 @@ void run() {
     size_t const preamble_length = 25;
     int const invalid = find_invalid(numbers, preamble_length);
     std::cout << invalid << std::endl;
+
+    std::vector<long> partial_sums{0};
+    for (int number : numbers) {
+        partial_sums.push_back(partial_sums.back() + number);
+    }
+
+    auto [i, j] = find_pairs_summing_to(partial_sums, invalid);
+
+    if (i < partial_sums.size() && j < partial_sums.size()) {
+        auto smallest = std::min_element(numbers.begin() + i, numbers.begin() + j);
+        auto largest = std::max_element(numbers.begin() + i, numbers.begin() + j);
+        std::cout << (*smallest + *largest) << std::endl;
+    }
 }
