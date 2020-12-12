@@ -101,10 +101,63 @@ action parse_action(std::string const& line) {
     }
 }
 
+struct waypoint {
+    int x = 10;
+    int y = 1;
+};
+
+waypoint move(waypoint wp, int dx, int dy) {
+    return {wp.x + dx, wp.y + dy};
+}
+
+waypoint rotate_wp(waypoint wp, turn t, int amount) {
+    if (amount == 90) {
+        if (t == turn::left) {
+            return {-wp.y, wp.x};
+        } else {
+            return {wp.y, -wp.x};
+        }
+    } else if (amount == 180) {
+        return rotate_wp(rotate_wp(wp, t, 90), t, 90);
+    } else if (amount == 270) {
+        return rotate_wp(rotate_wp(wp, t, 180), t, 90);
+    } else {
+        return wp;
+    }
+}
+
+std::pair<ship, waypoint> execute_wp(ship s, waypoint wp, action action) {
+    if (action.instruction == 'N') {
+        auto [dx, dy] = steps(direction::north, action.amount);
+        return {s, move(wp, dx, dy)};
+    } else if (action.instruction == 'S') {
+        auto [dx, dy] = steps(direction::south, action.amount);
+        return {s, move(wp, dx, dy)};
+    } else if (action.instruction == 'E') {
+        auto [dx, dy] = steps(direction::east, action.amount);
+        return {s, move(wp, dx, dy)};
+    } else if (action.instruction == 'W') {
+        auto [dx, dy] = steps(direction::west, action.amount);
+        return {s, move(wp, dx, dy)};
+    } else if (action.instruction == 'F') {
+        return {move(s, wp.x * action.amount, wp.y * action.amount), wp};
+    } else if (action.instruction == 'L') {
+        return {s, rotate_wp(wp, turn::left, action.amount)};
+    } else if (action.instruction == 'R') {
+        return {s, rotate_wp(wp, turn::right, action.amount)};
+    } else {
+        return {s, wp};
+    }
+}
+
 void run() {
+    ship wp_ship{};
+    waypoint wp;
     ship ship{};
     for (std::string const& line : input_lines(std::cin)) {
         ship = execute(ship, parse_action(line));
+        std::tie(wp_ship, wp) = execute_wp(wp_ship, wp, parse_action(line));
     }
     std::cout << std::abs(ship.x) + std::abs(ship.y) << std::endl;
+    std::cout << std::abs(wp_ship.x) + std::abs(wp_ship.y) << std::endl;
 }
