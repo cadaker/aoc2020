@@ -17,8 +17,12 @@ struct seating_area {
     [[nodiscard]] int width() const { return _width; }
     [[nodiscard]] int height() const { return static_cast<int>(seats.size()) / _width; }
 
+    [[nodiscard]] bool is_inside(int row, int col) const {
+        return 0 <= row && row < height() && 0 <= col && col < width();
+    }
+
     [[nodiscard]] seat get(int row, int col) const {
-        if (0 <= row && row < height() && 0 <= col && col < width()) {
+        if (is_inside(row, col)) {
             return seats[row*_width + col];
         } else {
             return seat::floor;
@@ -58,14 +62,34 @@ int occupied_neighbours(seating_area const& seats, int row, int col) {
            (seats.get(row+1, col+1) == seat::occupied);
 }
 
-seating_area evolve(seating_area const& seats) {
+bool evolve_close(seating_area const& seats, int row, int col) {
+    if (seats.get(row, col) == seat::empty && occupied_neighbours(seats, row, col) == 0) {
+        return true;
+    } else if (seats.get(row, col) == seat::occupied && occupied_neighbours(seats, row, col) >= 4) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+using evolution_function = std::function<bool(seating_area const& seats, int row, int col)>;
+
+seat evolved(seat const& s) {
+    if (s == seat::empty) {
+        return seat::occupied;
+    } else if (s == seat::occupied) {
+        return seat::empty;
+    } else {
+        return s;
+    }
+}
+
+seating_area evolve(seating_area const& seats, evolution_function const& evolve_fn) {
     seating_area ret{{}, seats.width()};
     for (int row = 0; row < seats.height(); ++row) {
         for (int col = 0; col < seats.width(); ++col) {
-            if (seats.get(row, col) == seat::empty && occupied_neighbours(seats, row, col) == 0) {
-                ret.seats.push_back(seat::occupied);
-            } else if (seats.get(row, col) == seat::occupied && occupied_neighbours(seats, row, col) >= 4) {
-                ret.seats.push_back(seat::empty);
+            if (evolve_fn(seats, row, col)) {
+                ret.seats.push_back(evolved(seats.get(row, col)));
             } else {
                 ret.seats.push_back(seats.get(row, col));
             }
@@ -74,15 +98,19 @@ seating_area evolve(seating_area const& seats) {
     return ret;
 }
 
-void run() {
-    seating_area area = parse_seats(std::cin);
-
+seating_area evolve_until_stable(seating_area area, evolution_function const& evolution_fn) {
     while (true) {
-        seating_area next = evolve(area);
+        seating_area next = evolve(area, evolution_fn);
         if (area.seats == next.seats) {
-            std::cout << std::count(area.seats.begin(), area.seats.end(), seat::occupied) << std::endl;
-            break;
+            return next;
         }
         area = std::move(next);
     }
+}
+
+void run() {
+    seating_area const area = parse_seats(std::cin);
+
+    auto const stable1 = evolve_until_stable(area, evolve_close);
+    std::cout << std::count(stable1.seats.begin(), stable1.seats.end(), seat::occupied) << std::endl;
 }
