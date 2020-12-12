@@ -72,6 +72,40 @@ bool evolve_close(seating_area const& seats, int row, int col) {
     }
 }
 
+bool scan_line_of_sight(seating_area const& seats, int row, int col, int drow, int dcol) {
+    do {
+        row += drow;
+        col += dcol;
+        if (seats.get(row, col) == seat::occupied) {
+            return true;
+        } else if (seats.get(row, col) == seat::empty) {
+            return false;
+        }
+    } while (seats.is_inside(row, col));
+    return false;
+}
+
+int occupied_line_of_sight(seating_area const& seats, int row, int col) {
+    return (scan_line_of_sight(seats, row, col, -1, -1)) +
+           (scan_line_of_sight(seats, row, col, -1, 0)) +
+           (scan_line_of_sight(seats, row, col, -1, 1)) +
+           (scan_line_of_sight(seats, row, col,  0, -1)) +
+           (scan_line_of_sight(seats, row, col,  0, 1)) +
+           (scan_line_of_sight(seats, row, col,  1, -1)) +
+           (scan_line_of_sight(seats, row, col,  1, 0)) +
+           (scan_line_of_sight(seats, row, col,  1, 1));
+}
+
+bool evolve_line_of_sight(seating_area const& seats, int row, int col) {
+    if (seats.get(row, col) == seat::empty && occupied_line_of_sight(seats, row, col) == 0) {
+        return true;
+    } else if (seats.get(row, col) == seat::occupied && occupied_line_of_sight(seats, row, col) >= 5) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
 using evolution_function = std::function<bool(seating_area const& seats, int row, int col)>;
 
 seat evolved(seat const& s) {
@@ -113,4 +147,7 @@ void run() {
 
     auto const stable1 = evolve_until_stable(area, evolve_close);
     std::cout << std::count(stable1.seats.begin(), stable1.seats.end(), seat::occupied) << std::endl;
+
+    auto const stable2 = evolve_until_stable(area, evolve_line_of_sight);
+    std::cout << std::count(stable2.seats.begin(), stable2.seats.end(), seat::occupied) << std::endl;
 }
