@@ -1,11 +1,11 @@
-#include "range_helpers.hpp"
+#include "numtheory.hpp"
 #include <vector>
 #include <utility>
 #include <iostream>
 #include <regex>
 #include <iterator>
 #include <algorithm>
-#include <ranges>
+
 
 constexpr long x = -1;
 
@@ -54,9 +54,24 @@ long earliest_departure_bus(long start_time, std::vector<long> const& buses) {
     }
 }
 
+long find_bus_alignment(std::vector<long> const& buses) {
+    std::vector<long> remainders;
+    std::vector<long> moduli;
+    for (size_t i = 0; i < buses.size(); ++i) {
+        long const bus = buses[i];
+        if (bus != x) {
+            remainders.push_back(bus - i);
+            moduli.push_back(bus);
+        }
+    }
+    return chinese_remainder(remainders, moduli);
+}
+
 void run() {
     input const input = parse_input(std::cin);
 
     long const earliest_bus = earliest_departure_bus(input.start_time, input.buses);
     std::cout << (earliest_bus * (earliest_bus_time(input.start_time, earliest_bus) - input.start_time)) << std::endl;
+
+    std::cout << find_bus_alignment(input.buses) << std::endl;
 }
