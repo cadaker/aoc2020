@@ -70,15 +70,50 @@ void apply(instr const& instr, std::unordered_map<unsigned long, unsigned long>&
     }
 }
 
+std::vector<unsigned long> explode_mask(unsigned long use, size_t index) {
+    if (index >= 36) {
+        return {0UL};
+    } else if (use & (1UL << index)) {
+        return explode_mask(use & ~(1UL << index), index+1);
+    } else {
+        auto exploded = explode_mask(use, index + 1);
+        size_t const size = exploded.size();
+        exploded.reserve(size * 2);
+        for (size_t i = 0; i < size; ++i) {
+            exploded.push_back(exploded[i] | (1UL << index));
+        }
+        return exploded;
+    }
+}
+
+void apply_version2(instr const& instr, std::unordered_map<unsigned long, unsigned long>& memory, mask& current_mask) {
+    if (instr.op == oper::mask) {
+        current_mask.use = instr.arg1;
+        current_mask.override = instr.arg2;
+    } else {
+        unsigned long base_address = (instr.arg1 & current_mask.use) | current_mask.override;
+        for (unsigned long mask : explode_mask(current_mask.use, 0)) {
+            memory[(base_address | mask)] = instr.arg2;
+        }
+    }
+}
+
 void run() {
-    std::unordered_map<unsigned long, unsigned long> memory;
-    mask current_mask{};
+    std::unordered_map<unsigned long, unsigned long> memory, memory2;
+    mask current_mask{}, current_mask2{};
     for (std::string const& line : input_lines(std::cin)) {
         instr const instr = parse(line);
+
         apply(instr, memory, current_mask);
+        apply_version2(instr, memory2, current_mask2);
     }
 
     std::cout << (std::accumulate(memory.begin(), memory.end(), 0UL, [](unsigned long sum, auto& p) {
+        return sum + p.second;
+    }))
+              << std::endl;
+
+    std::cout << (std::accumulate(memory2.begin(), memory2.end(), 0UL, [](unsigned long sum, auto& p) {
         return sum + p.second;
     }))
               << std::endl;
