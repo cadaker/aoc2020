@@ -17,7 +17,7 @@ void run() {
 
     int last_number = starting_numbers.empty() ? 0 : starting_numbers.front();
 
-    for (size_t iteration = 1; iteration < 2020; ++iteration) {
+    for (size_t iteration = 1; iteration < 30000000; ++iteration) {
         auto it = last_mention_of.find(last_number);
         if (iteration < starting_numbers.size()) {
             last_mention_of[last_number] = iteration-1;
@@ -29,6 +29,9 @@ void run() {
             size_t const last_use = it->second;
             last_mention_of[last_number] = iteration - 1;
             last_number = static_cast<int>(iteration - 1 - last_use);
+        }
+        if (iteration == 2019) {
+            std::cout << last_number << std::endl;
         }
     }
     std::cout << last_number << std::endl;
