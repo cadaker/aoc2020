@@ -7,6 +7,7 @@ struct pos_t {
     int x{};
     int y{};
     int z{};
+    int w{};
 
     inline std::strong_ordering operator<=>(pos_t const& pos) const = default;
 };
@@ -17,7 +18,7 @@ namespace std {
         size_t operator()(pos_t const& p) const {
             std::hash<int> h;
             auto combine = [](size_t h0, size_t h1) { return (h0 << 1) ^ h1; };
-            return combine(combine(h(p.x), h(p.y)), h(p.z));
+            return combine(combine(h(p.x), h(p.y)), combine(h(p.z), h(p.w)));
         }
     };
 }
@@ -31,6 +32,8 @@ struct world_limits_t {
     int ymax = 0;
     int zmin = 0;
     int zmax = 0;
+    int wmin = 0;
+    int wmax = 0;
 
     void expand(pos_t p) noexcept {
         xmin = std::min(xmin, p.x);
@@ -39,19 +42,21 @@ struct world_limits_t {
         ymax = std::max(ymax, p.y);
         zmin = std::min(zmin, p.z);
         zmax = std::max(zmax, p.z);
+        wmin = std::min(wmin, p.w);
+        wmax = std::max(wmax, p.w);
     }
 };
 
 std::pair<world_t, world_limits_t> parse(std::istream& is) {
-    world_limits_t limits{0, 0, 0, 0, 0, 0};
+    world_limits_t limits;
     world_t world;
     std::string line;
     int y = 0;
     while (std::getline(is, line)) {
         for (int x = 0; x < static_cast<int>(line.length()); ++x) {
             if (line[x] == '#') {
-                world[{x, y, 0}] = true;
-                limits.expand({x, y, 0});
+                world[{x, y, 0, 0}] = true;
+                limits.expand({x, y, 0, 0});
             }
         }
         ++y;
@@ -59,7 +64,7 @@ std::pair<world_t, world_limits_t> parse(std::istream& is) {
     return {world, limits};
 }
 
-int active_neighbours(world_t const& world, pos_t pos) {
+int active_neighbours3(world_t const& world, pos_t pos) {
     int count = 0;
     for (int dx = -1; dx <= 1; ++dx) {
         for (int dy = -1; dy <= 1; ++dy) {
@@ -74,13 +79,13 @@ int active_neighbours(world_t const& world, pos_t pos) {
     return count;
 }
 
-void evolve(world_t& world, world_limits_t& limits) {
+void evolve3(world_t& world, world_limits_t& limits) {
     world_t new_world;
     world_limits_t new_limits = limits;
     for (int x = limits.xmin-1; x <= limits.xmax+1; ++x) {
         for (int y = limits.ymin-1; y <= limits.ymax+1; ++y) {
             for (int z = limits.zmin-1; z <= limits.zmax+1; ++z) {
-                int const n = active_neighbours(world, {x, y, z});
+                int const n = active_neighbours3(world, {x, y, z});
                 if ((!world[{x, y, z}] && n == 3) ||
                     (world[{x, y, z}] && (n == 2 || n == 3))) {
                     new_world[{x, y, z}] = true;
@@ -101,7 +106,7 @@ void run() {
     auto [world, limits] = parse(std::cin);
 
     for (int iter = 0; iter < 6; ++iter) {
-        evolve(world, limits);
+        evolve3(world, limits);
     }
     std::cout << count_active(world) << std::endl;
 }
