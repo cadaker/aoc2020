@@ -98,15 +98,59 @@ void evolve3(world_t& world, world_limits_t& limits) {
     limits = new_limits;
 }
 
+
+int active_neighbours4(world_t const& world, pos_t pos) {
+    int count = 0;
+    for (int dx = -1; dx <= 1; ++dx) {
+        for (int dy = -1; dy <= 1; ++dy) {
+            for (int dz = -1; dz <= 1; ++dz) {
+                for (int dw = -1; dw <= 1; ++dw) {
+                    auto it = world.find({pos.x + dx, pos.y + dy, pos.z + dz, pos.w + dw});
+                    if ((dx != 0 || dy != 0 || dz != 0 || dw != 0) && it != world.end() && it->second) {
+                        ++count;
+                    }
+                }
+            }
+        }
+    }
+    return count;
+}
+
+void evolve4(world_t& world, world_limits_t& limits) {
+    world_t new_world;
+    world_limits_t new_limits = limits;
+    for (int x = limits.xmin-1; x <= limits.xmax+1; ++x) {
+        for (int y = limits.ymin-1; y <= limits.ymax+1; ++y) {
+            for (int z = limits.zmin-1; z <= limits.zmax+1; ++z) {
+                for (int w = limits.wmin-1; w <= limits.wmax+1; ++w) {
+                    int const n = active_neighbours4(world, {x, y, z, w});
+                    if ((!world[{x, y, z, w}] && n == 3) ||
+                        (world[{x, y, z, w}] && (n == 2 || n == 3))) {
+                        new_world[{x, y, z, w}] = true;
+                        new_limits.expand({x, y, z, w});
+                    }
+                }
+            }
+        }
+    }
+    world = std::move(new_world);
+    limits = new_limits;
+}
+
+
 size_t count_active(world_t const& world) {
     return world | std::views::transform([](auto& p) { return static_cast<unsigned long>(p.second); }) | accumulate(0UL);
 }
 
 void run() {
     auto [world, limits] = parse(std::cin);
+    auto world4 = world;
+    auto limits4 = limits;
 
     for (int iter = 0; iter < 6; ++iter) {
         evolve3(world, limits);
+        evolve4(world4, limits4);
     }
     std::cout << count_active(world) << std::endl;
+    std::cout << count_active(world4) << std::endl;
 }
