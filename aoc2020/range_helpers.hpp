@@ -1,6 +1,7 @@
 #pragma once
 #include <numeric>
 #include <ranges>
+#include <vector>
 
 template<class T, class Op = std::plus<>>
 struct accumulate {
@@ -63,3 +64,18 @@ template<class Iter, class Sent>
 Sent end(pairseq<Iter, Sent> const& p) {
     return p.sentinel;
 }
+
+////////////////////////////////////////////////////////////////
+
+struct to_vector_fn {};
+
+template<std::ranges::input_range Rng>
+inline auto operator|(Rng&& range, to_vector_fn const& fn) -> std::vector<std::ranges::range_value_t<Rng>>{
+    std::vector<std::ranges::range_value_t<Rng>> ret;
+    for (auto&& x : std::forward<Rng>(range)) {
+        ret.push_back(x);
+    }
+    return ret;
+}
+
+inline constexpr to_vector_fn to_vector;
