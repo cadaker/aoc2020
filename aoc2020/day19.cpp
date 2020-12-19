@@ -40,6 +40,13 @@ std::unordered_set<pos_t> match_rule(ruleset const& rules, int current_rule, std
     return all_ends;
 }
 
+std::unordered_set<pos_t> match_rule_sequence(ruleset const& rules, std::vector<int> const& rule_sequence, std::string const& text, std::unordered_set<pos_t> positions) {
+    for (int rule_index : rule_sequence) {
+        positions = match_rule(rules, rule_index, text, positions);
+    }
+    return positions;
+}
+
 // Returns the list of possible positions after a match
 std::unordered_set<pos_t> match_rule(ruleset const& rules, int current_rule, std::string const& text, pos_t start) {
     rule_t const& rule = rules.at(current_rule);
@@ -52,11 +59,8 @@ std::unordered_set<pos_t> match_rule(ruleset const& rules, int current_rule, std
     } else {
         std::unordered_set<pos_t> ret;
         for (auto const& choice : rule.choices) {
-            std::unordered_set<pos_t> current_positions{start};
-            for (int seq_index : choice) {
-                current_positions = match_rule(rules, seq_index, text, current_positions);
-            }
-            ret.insert(current_positions.begin(), current_positions.end());
+            auto ends = match_rule_sequence(rules, choice, text, {start});
+            ret.insert(ends.begin(), ends.end());
         }
         return ret;
     }
