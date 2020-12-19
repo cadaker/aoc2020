@@ -98,15 +98,23 @@ std::pair<ruleset, std::vector<std::string>> parse(std::istream& is) {
     return {std::move(rules), std::move(messages)};
 }
 
+size_t count_matching(ruleset const& rules, int rule_no, std::vector<std::string> const& messages) {
+    return std::count_if(
+            messages.begin(),
+            messages.end(),
+            [&](std::string const& message) {
+                auto ends = match_rule(rules, rule_no, message, 0);
+                return ends.count(message.length()) > 0;
+            });
+}
+
 void run() {
     auto [rules, messages] = parse(std::cin);
 
-    size_t count = 0;
-    for (std::string const& message : messages) {
-        auto ends = match_rule(rules, 0, message, 0);
-        if (ends.count(message.length()) > 0) {
-            ++count;
-        }
-    }
-    std::cout << count << std::endl;
+    std::cout << count_matching(rules, 0, messages) << std::endl;
+
+    rules[8] = rule_t::make_recursive({{42}, {42, 8}});
+    rules[11] = rule_t::make_recursive({{42, 31}, {42, 11, 31}});
+
+    std::cout << count_matching(rules, 0, messages) << std::endl;
 }
