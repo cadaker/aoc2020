@@ -8,7 +8,13 @@ constexpr size_t SIDE_LENGTH = 10;
 using side_t = unsigned;
 
 struct puzzle_piece {
+    int id = 0;
     std::array<side_t, 4> sides{};
+    std::vector<char> contents;
+
+    explicit operator bool() const {
+        return !contents.empty();
+    }
 };
 
 side_t flip(side_t edge) {
@@ -44,6 +50,7 @@ std::unordered_map<int, puzzle_piece> parse(std::istream& is) {
         if (std::getline(is, line)) {
             int const id = atoi(line.substr(std::string("Tile :").length() - 1).c_str());
 
+            std::vector<char> contents;
             bool first = true;
             side_builder top;
             side_builder bottom;
@@ -58,8 +65,10 @@ std::unordered_map<int, puzzle_piece> parse(std::istream& is) {
                 bottom.add(line.begin(), line.end());
                 left.add(line.front());
                 right.add(line.back());
+
+                contents.insert(contents.end(), line.begin(), line.end());
             }
-            pieces[id] = puzzle_piece({top.side, right.side, flip(bottom.side), flip(left.side)});
+            pieces[id] = puzzle_piece{id, {top.side, right.side, flip(bottom.side), flip(left.side)}, std::move(contents)};
         }
     }
     return pieces;
