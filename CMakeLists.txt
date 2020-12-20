@@ -35,6 +35,7 @@ day(day20)
 add_executable(tests
         tests/test02.cpp
         tests/input_helpers.cpp
+        tests/grid.cpp
         aoc2020/day02.cpp
         )
 target_link_libraries(tests
