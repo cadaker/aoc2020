@@ -106,10 +106,43 @@ long basic_eval(unprec_expr const& expr) {
     }
 }
 
+long eval_with_precedence(std::vector<long> terms, std::vector<op_t> ops) {
+    while (!ops.empty()) {
+        long rhs = terms.back();
+        terms.pop_back();
+        op_t const op = ops.back();
+        ops.pop_back();
+        if (op == op_t::plus) {
+            terms.back() += rhs;
+        } else {
+            return eval_with_precedence(std::move(terms), std::move(ops)) * rhs;
+        }
+    }
+    return terms.back();
+}
+
+long eval_with_precedence(unprec_expr const& expr) {
+    if (expr.terms.empty()) {
+        return expr.value;
+    } else {
+        std::vector<long> terms;
+        std::transform(expr.terms.begin(), expr.terms.end(), std::back_inserter(terms),
+                       [](std::unique_ptr<unprec_expr> const& t) {
+                           return eval_with_precedence(*t);
+                       });
+        std::vector<op_t> ops = expr.ops;
+        return eval_with_precedence(std::move(terms), std::move(ops));
+    }
+}
+
 void run() {
     long sum = 0;
+    long sum_prec = 0;
     for (std::string const& line : input_lines(std::cin)) {
-        sum += basic_eval(parse_expression(line));
+        auto expr = parse_expression(line);
+        sum += basic_eval(expr);
+        sum_prec += eval_with_precedence(expr);
     }
     std::cout << sum << std::endl;
+    std::cout << sum_prec << std::endl;
 }
