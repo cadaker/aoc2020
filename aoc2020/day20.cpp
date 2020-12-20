@@ -17,6 +17,8 @@ struct puzzle_piece {
     }
 };
 
+using piece_collection = std::unordered_map<int, puzzle_piece>;
+
 side_t flip(side_t edge) {
     side_t flipped = 0;
     for (size_t i = 0; i < SIDE_LENGTH; ++i) {
@@ -43,8 +45,8 @@ struct side_builder {
     }
 };
 
-std::unordered_map<int, puzzle_piece> parse(std::istream& is) {
-    std::unordered_map<int, puzzle_piece> pieces;
+piece_collection parse(std::istream& is) {
+    piece_collection pieces;
     while (is) {
         std::string line;
         if (std::getline(is, line)) {
@@ -80,13 +82,13 @@ bool matches(side_t s, puzzle_piece const& p) {
            std::find(p.sides.begin(), p.sides.end(), f) != p.sides.end();
 }
 
-size_t count_matches(int id, side_t s, std::unordered_map<int, puzzle_piece> const& pieces) {
+size_t count_matches(int id, side_t s, piece_collection const& pieces) {
     return std::count_if(pieces.begin(), pieces.end(), [id, s](auto const& p) {
         return p.first != id && matches(s, p.second);
     });
 }
 
-bool must_be_corner_piece(int id, std::unordered_map<int, puzzle_piece> const& pieces) {
+bool must_be_corner_piece(int id, piece_collection const& pieces) {
     puzzle_piece const& p = pieces.at(id);
     return count_matches(id, p.sides[0], pieces) +
            count_matches(id, p.sides[1], pieces) +
