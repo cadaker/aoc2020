@@ -4,6 +4,7 @@
 #include <string>
 #include <unordered_set>
 #include <unordered_map>
+#include <map>
 #include <regex>
 
 struct declaration_t {
@@ -105,10 +106,40 @@ size_t count_ingredients(std::unordered_set<std::string> const& ingredients, std
     return count;
 }
 
+std::unordered_map<std::string, std::string> reduce_options(allergen_to_ingredient_options options) {
+    std::unordered_map<std::string, std::string> ret;
+    auto only_one_ingredient = [](auto const&p) { return p.second.size() == 1; };
+    while (true) {
+        auto it = std::find_if(options.begin(), options.end(), only_one_ingredient);
+        if (it != options.end()) {
+            std::string const allergen = it->first;
+            std::string const ingredient = *it->second.begin();
+
+            ret[allergen] = ingredient;
+            options.erase(allergen);
+            for (auto& [_, ingredients] : options) {
+                ingredients.erase(ingredient);
+            }
+        } else {
+            break;
+        }
+    }
+    return ret;
+}
+
 void run() {
     auto declarations = parse(std::cin);
 
     auto options = ingredient_options(declarations);
 
     std::cout << count_ingredients(safe_ingredients(options, declarations), declarations) << std::endl;
+
+    auto reduced = reduce_options(options);
+
+    bool first = true;
+    for (auto const& [_, ingredient] : std::map<std::string, std::string>(reduced.begin(), reduced.end())) {
+        std::cout << (first ? "" : ",") << ingredient;
+        first = false;
+    }
+    std::cout << std::endl;
 }
