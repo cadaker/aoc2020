@@ -201,6 +201,91 @@ grid<puzzle_piece> solve(piece_collection const& pieces) {
     return ret;
 }
 
+grid<char> join_puzzle(grid<puzzle_piece> const& puzzle) {
+    std::vector<grid<char>> joined_rows;
+    auto crop = [](grid<char> const& g) {
+        return subgrid(g, 1, g.rows() - 1, 1, g.cols() - 1);
+    };
+    for (size_t r = 0; r < puzzle.rows(); ++r) {
+        auto g = crop(puzzle(r, 0).contents);
+        for (size_t c = 1; c < puzzle.cols(); ++c) {
+            g = join_horiz(g, crop(puzzle(r, c).contents));
+        }
+        joined_rows.push_back(std::move(g));
+    }
+
+    grid<char> ret = joined_rows.at(0);
+    for (size_t i = 1; i < joined_rows.size(); ++i) {
+        ret = join_vert(ret, joined_rows[i]);
+    }
+    return ret;
+}
+
+static const std::string monster_1("                  # ");
+static const std::string monster_2("#    ##    ##    ###");
+static const std::string monster_3(" #  #  #  #  #  #   ");
+
+bool match_sea_monster(grid<char> const& map, size_t r, size_t c) {
+    if (c + monster_1.length() < map.cols() && r + 2 < map.rows()) {
+        for (size_t i = 0; i < monster_1.size(); ++i) {
+            if ((monster_1[i] == '#' && map(r, c + i) == '.' ) ||
+                (monster_2[i] == '#' && map(r + 1, c + i) == '.') ||
+                (monster_3[i] == '#' && map(r + 2, c + i) == '.')) {
+                return false;
+            }
+        }
+        return true;
+    } else {
+        return false;
+    }
+}
+
+void paint_sea_monster(grid<char>& map, size_t r, size_t c) {
+    for (size_t i = 0; i < monster_1.size(); ++i) {
+        if (monster_1[i] == '#') {
+            map(r, c + i) = 'O';
+        }
+        if (monster_2[i] == '#') {
+            map(r + 1, c + i) = 'O';
+        }
+        if (monster_3[i] == '#') {
+            map(r + 2, c + i) = 'O';
+        }
+    }
+}
+
+void find_and_paint_sea_monsters(grid<char>& map) {
+    for (size_t r = 0; r < map.rows(); ++r) {
+        for (size_t c = 0; c < map.cols(); ++c) {
+            if (match_sea_monster(map, r, c)) {
+                paint_sea_monster(map, r, c);
+            }
+        }
+    }
+}
+
+void find_and_paint_all_sea_monsters(grid<char>& map) {
+    for (int i = 0; i < 4; ++i) {
+        find_and_paint_sea_monsters(map);
+        map = rotate_ccw(map);
+    }
+    map = mirror_horiz(map);
+    for (int i = 0; i < 4; ++i) {
+        find_and_paint_sea_monsters(map);
+        map = rotate_ccw(map);
+    }
+    map = mirror_vert(map);
+    for (int i = 0; i < 4; ++i) {
+        find_and_paint_sea_monsters(map);
+        map = rotate_ccw(map);
+    }
+    map = mirror_horiz(map);
+    for (int i = 0; i < 4; ++i) {
+        find_and_paint_sea_monsters(map);
+        map = rotate_ccw(map);
+    }
+}
+
 void run() {
     auto pieces = parse(std::cin);
     paint_borders(pieces);
@@ -213,4 +298,10 @@ void run() {
                   | accumulate(1L, std::multiplies{})) << std::endl;
 
     auto puzzle = solve(pieces);
+
+    grid<char> map = join_puzzle(puzzle);
+
+    find_and_paint_all_sea_monsters(map);
+
+    std::cout << std::count(map.begin(), map.end(), '#') << std::endl;
 }
