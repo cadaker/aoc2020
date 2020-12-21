@@ -14,7 +14,7 @@ public:
 
     grid(size_t rows, size_t cols)
             : _cols(cols)
-            , _data(rows*cols, {})
+            , _data(rows*cols)
     {
     }
 
