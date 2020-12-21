@@ -1,6 +1,7 @@
 #include "gtest/gtest.h"
 #include "grid.hpp"
 #include "range_helpers.hpp"
+#include <sstream>
 
 TEST(grid, basics) {
     grid<int> grid(3, 2);
@@ -56,4 +57,75 @@ TEST(grid, subgrid) {
     EXPECT_EQ(grid2(0, 1), 6);
     EXPECT_EQ(grid2(1, 0), 9);
     EXPECT_EQ(grid2(1, 1), 10);
+}
+
+TEST(grid, grid_builder) {
+    grid_builder<int> builder;
+    builder.push_back(0);
+    builder.push_back(1);
+    builder.push_back(2);
+    builder.finish_row();
+    builder.push_back(3);
+    builder.push_back(4);
+    builder.push_back(5);
+    builder.finish_row();
+    auto grid = builder.build();
+    ASSERT_EQ(grid.rows(), 2);
+    ASSERT_EQ(grid.cols(), 3);
+    EXPECT_EQ(grid(0, 0), 0);
+    EXPECT_EQ(grid(0, 1), 1);
+    EXPECT_EQ(grid(0, 2), 2);
+    EXPECT_EQ(grid(1, 0), 3);
+    EXPECT_EQ(grid(1, 1), 4);
+    EXPECT_EQ(grid(1, 2), 5);
+}
+
+TEST(grid, grid_formatting) {
+    grid<int> g(2, 3);
+    std::iota(g.begin(), g.end(), 0);
+    std::ostringstream oss;
+    oss << g;
+    EXPECT_EQ(oss.str(), "0 1 2\n3 4 5\n");
+}
+
+TEST(grid, rotate) {
+    grid<int> g(2, 3);
+    std::iota(g.begin(), g.end(), 0);
+    grid<int> grot = rotate_ccw(g);
+    ASSERT_EQ(grot.cols(), 2);
+    ASSERT_EQ(grot.rows(), 3);
+    EXPECT_EQ(grot(0, 0), 2);
+    EXPECT_EQ(grot(0, 1), 5);
+    EXPECT_EQ(grot(1, 0), 1);
+    EXPECT_EQ(grot(1, 1), 4);
+    EXPECT_EQ(grot(2, 0), 0);
+    EXPECT_EQ(grot(2, 1), 3);
+}
+
+TEST(grid, mirror_horiz) {
+    grid<int> g(2, 3);
+    std::iota(g.begin(), g.end(), 0);
+    grid<int> gflip = mirror_horiz(g);
+    ASSERT_EQ(gflip.cols(), 3);
+    ASSERT_EQ(gflip.rows(), 2);
+    EXPECT_EQ(gflip(0, 0), 2);
+    EXPECT_EQ(gflip(0, 1), 1);
+    EXPECT_EQ(gflip(0, 2), 0);
+    EXPECT_EQ(gflip(1, 0), 5);
+    EXPECT_EQ(gflip(1, 1), 4);
+    EXPECT_EQ(gflip(1, 2), 3);
+}
+
+TEST(grid, mirror_vert) {
+    grid<int> g(2, 3);
+    std::iota(g.begin(), g.end(), 0);
+    grid<int> gflip = mirror_vert(g);
+    ASSERT_EQ(gflip.cols(), 3);
+    ASSERT_EQ(gflip.rows(), 2);
+    EXPECT_EQ(gflip(0, 0), 3);
+    EXPECT_EQ(gflip(0, 1), 4);
+    EXPECT_EQ(gflip(0, 2), 5);
+    EXPECT_EQ(gflip(1, 0), 0);
+    EXPECT_EQ(gflip(1, 1), 1);
+    EXPECT_EQ(gflip(1, 2), 2);
 }
