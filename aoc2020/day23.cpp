@@ -102,12 +102,44 @@ std::string order_after_1(std::vector<int> const& cups) {
     return oss.str();
 }
 
+std::pair<long, long> two_after_1(std::vector<int> const& cups) {
+    auto it = std::find(cups.begin(), cups.end(), 1);
+    if (it != cups.end()) {
+        if (++it == cups.end()) {
+            it = cups.begin();
+        }
+        int const first = *it;
+        if (++it == cups.end()) {
+            it = cups.begin();
+        }
+        int const second = *it;
+        return {first, second};
+    } else {
+        return {0, 0};
+    }
+}
+
 void run() {
     auto input = parse(std::cin);
-    cups_t cups(input.begin(), input.end());
+    {
+        cups_t cups(input.begin(), input.end());
 
-    for (int i = 0; i < 100; ++i) {
-        cups.move();
+        for (int i = 0; i < 100; ++i) {
+            cups.move();
+        }
+        std::cout << order_after_1(cups.cups()) << std::endl;
     }
-    std::cout << order_after_1(cups.cups()) << std::endl;
+    {
+        std::vector<int> extended(input.begin(), input.end());
+        for (int i = static_cast<int>(extended.size() + 1); i <= 1000000; ++i) {
+            extended.push_back(i);
+        }
+        cups_t cups2(extended.begin(), extended.end());
+
+        for (int i = 0; i < 10000000; ++i) {
+            cups2.move();
+        }
+        auto const [first, second] = two_after_1(cups2.cups());
+        std::cout << first*second << std::endl;
+    }
 }
