@@ -3,6 +3,8 @@
 #include <ranges>
 #include <vector>
 #include <sstream>
+#include <list>
+#include <unordered_map>
 
 class cups_t {
 public:
@@ -10,44 +12,51 @@ public:
     requires std::convertible_to<std::iter_value_t<Iter>, int>
     cups_t(Iter begin, Sent end)
             : _cups(begin, end)
+            , _current(_cups.begin())
     {
+        for (auto it = _cups.begin(); it != _cups.end(); ++it) {
+            _find_elem[*it] = it;
+        }
+
     }
 
     void move() {
-        int const current_val = _cups.at(_current);
+        int const current_val = *_current;
         int const total = static_cast<int>(_cups.size());
-        size_t const ix1 = cyclic_next(_current);
-        size_t const ix2 = cyclic_next(ix1);
-        size_t const ix3 = cyclic_next(ix2);
-        int const cup1 = _cups.at(ix1);
-        int const cup2 = _cups.at(ix2);
-        int const cup3 = _cups.at(ix3);
+        auto const it1 = cyclic_next(_current);
+        auto const it2 = cyclic_next(it1);
+        auto const it3 = cyclic_next(it2);
+        int const cup1 = *it1;
+        int const cup2 = *it2;
+        int const cup3 = *it3;
 
-        auto it1 = std::remove(_cups.begin(), _cups.end(), cup1);
-        auto it2 = std::remove(_cups.begin(), it1, cup2);
-        auto it3 = std::remove(_cups.begin(), it2, cup3);
-        _cups.erase(it3, _cups.end());
+        _cups.erase(it1);
+        _cups.erase(it2);
+        _cups.erase(it3);
 
         int const next = next_current(current_val, cup1, cup2, cup3, total);
-        auto next_it = std::find(_cups.begin(), _cups.end(), next);
-        _cups.insert(std::next(next_it), {cup1, cup2, cup3});
+        auto next_it = _find_elem[next];
+        _find_elem[cup3] = _cups.insert(std::next(next_it), cup3);
+        _find_elem[cup2] = _cups.insert(std::next(next_it), cup2);
+        _find_elem[cup1] = _cups.insert(std::next(next_it), cup1);
 
-        _current = cyclic_next(std::find(_cups.begin(), _cups.end(), current_val) - _cups.begin());
+        _current = cyclic_next(_current);
     }
 
     [[nodiscard]] std::vector<int> cups() const {
-        return _cups;
+        return {_cups.begin(), _cups.end()};
     }
 
 private:
-    std::vector<int> _cups;
-    size_t _current = 0;
+    std::list<int> _cups;
+    std::unordered_map<int, std::list<int>::iterator> _find_elem;
+    std::list<int>::iterator _current;
 
-    [[nodiscard]] size_t cyclic_next(size_t ix) const {
-        if (ix + 1 < _cups.size()) {
-            return ix + 1;
+    [[nodiscard]] std::list<int>::iterator cyclic_next(std::list<int>::iterator it) {
+        if (++it != _cups.end()) {
+            return it;
         } else {
-            return 0;
+            return _cups.begin();
         }
     }
 
@@ -59,7 +68,7 @@ private:
         }
     }
 
-    [[nodiscard]] int next_current(int current, int cup1, int cup2, int cup3, int total) const {
+    [[nodiscard]] static int next_current(int current, int cup1, int cup2, int cup3, int total) {
         int next = cyclic_prev(current, total);
         while (next == cup1 || next == cup2 || next == cup3) {
             next = cyclic_prev(next, total);
