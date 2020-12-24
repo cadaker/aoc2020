@@ -34,6 +34,7 @@ day(day20)
 day(day21)
 day(day22)
 day(day23)
+day(day24)
 
 add_executable(tests
         tests/test02.cpp
