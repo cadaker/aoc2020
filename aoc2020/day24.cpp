@@ -70,15 +70,66 @@ void flip_path(map_t& map, std::vector<coord_t> const& path) {
     flip(map, coord);
 }
 
+colour colour_of(map_t const& map, coord_t const& coord) {
+    auto it = map.find(coord);
+    return it != map.end() ? it->second : white;
+}
+
+std::vector<coord_t> neighbours_of(coord_t const& coord) {
+    return {
+            {coord.x + 1, coord.y},
+            {coord.x - 1, coord.y},
+            {coord.x, coord.y + 1},
+            {coord.x, coord.y - 1},
+            {coord.x + 1, coord.y - 1},
+            {coord.x - 1, coord.y + 1},
+    };
+}
+
+size_t black_neighbours(map_t const& map, coord_t const& coord) {
+    size_t count = 0;
+    for (auto& n : neighbours_of(coord)) {
+        count += colour_of(map, n);
+    }
+    return count;
+}
+
+map_t iterate(map_t const& map) {
+    map_t ret;
+    for (auto& [painted_coord, _] : map) {
+        auto coords = neighbours_of(painted_coord);
+        coords.push_back(painted_coord);
+
+        for (auto &coord : coords) {
+            colour const c = colour_of(map, coord);
+            size_t const count = black_neighbours(map, coord);
+            if ((c == black && (count == 1 || count == 2)) ||
+                (c == white && count == 2)) {
+                ret[coord] = black;
+            }
+        }
+    }
+    return ret;
+}
+
+size_t count_black(map_t const& map) {
+    size_t count = 0;
+    for (auto& [coord, c] : map) {
+        count += (c == black);
+    }
+    return count;
+}
+
 void run() {
     map_t map;
     std::string line;
     while (std::getline(std::cin, line)) {
         flip_path(map, compass_to_coords(line));
     }
-    size_t count = 0;
-    for (auto& [coord, c] : map) {
-        count += (c == black);
+    std::cout << count_black(map) << std::endl;
+
+    for (int iter = 0; iter < 100; ++iter) {
+        map = iterate(map);
     }
-    std::cout << count << std::endl;
+    std::cout << count_black(map) << std::endl;
 }
